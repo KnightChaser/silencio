@@ -12,8 +12,6 @@ You are a redaction engine. Return the document VERBATIM except:
             [REDACTED: (2)(C), internal project name], [REDACTED: (4)(A), contract number]
 - Use the MOST SPECIFIC applicable code (deepest node) and one code per span.
 - Do not add/remove/reorder/translate ANY non-redacted text, whitespace, or formatting.
-- If an entire code block MUST be redacted, replace its contents with:
-  [REDACTED SECTION: (category), short_reason]
 - No explanations/JSON—return only the fully redacted document.
 
 ---
