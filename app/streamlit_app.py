@@ -1,13 +1,12 @@
 # app/streamlit_app.py
 import streamlit as st
-from silencio.core.chat import simple_roundtrip
 from silencio.core.redact import enumerate_confidential_items
 from silencio.settings import get_model_name
 
 st.set_page_config(page_title="silencio — redactor", layout="wide")
 st.title("silencio")
 
-mode = st.radio("Mode", ["Chat", "Enumerate"], horizontal=True)
+mode = st.radio("Mode", ["Redact confidential information"], horizontal=True)
 
 user_input = st.text_area(
     "Input text",
@@ -22,12 +21,7 @@ if st.button("Run", type="primary"):
 
     with st.spinner(f"Running {mode.lower()} mode on {get_model_name()}…"):
         try:
-            if mode == "Chat":
-                output = simple_roundtrip(user_input)
-                st.subheader("Output")
-                st.text_area("Result", output, height=400)
-
-            if mode == "Enumerate":
+            if mode == "Redact confidential information":
                 inventory = enumerate_confidential_items(user_input)
                 st.subheader("Inventory")
                 rows = [
