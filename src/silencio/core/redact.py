@@ -1,19 +1,20 @@
 # src/silencio/core/redact.py
 from __future__ import annotations
 from typing import List
-from ..ai.base import ChatMessage
-from ..ai.openai_client import OpenAIChatClient
+from pydantic import BaseModel, Field
+from openai import OpenAI
+from ..settings import get_openai_api_key, get_model_name
 
 SYSTEM_PROMPT = """
-You are a redaction engine. Return the document VERBATIM except:
-- Replace only sensitive spans with tags in EXACT format:
-  [REDACTED: (1|2|3|4)(A|B|C|D|E|X)?(a|b|c|d|e|x)?, short_description]
-  Examples: [REDACTED: (1)(A)(c), email address], [REDACTED: (3)(B)(c), internal domain],
-            [REDACTED: (2)(C), internal project name], [REDACTED: (4)(A), contract number]
-- Use the MOST SPECIFIC applicable code (deepest node) and one code per span.
-- Do not add/remove/reorder/translate ANY non-redacted text, whitespace, or formatting.
-- No explanations/JSON—return only the fully redacted document.
+You are a redaction engine for corporate security and confidentiality.
 
+Return a DEDUPED list with fields: item, code, desc, aliases, notes.
+- One row per unique item present in the input. If an item appears multiple times, list it ONCE.
+- Use the most specific code: (1|2|3|4)(A–E|X)?(a–e|x)?  e.g., (1)(A)(c), (3)(B)(d), (2)(C).
+- Keep item EXACTLY as it appears in the input (surface form). Add other seen surface forms to aliases.
+- Be minimal and factual. Do not include anything not present in the input.
+
+Legend:
 ---
 
 ### (1) Personally Identifiable Information (PII)
@@ -114,13 +115,32 @@ You are a redaction engine. Return the document VERBATIM except:
 """
 
 
-def redact_text(document_text: str) -> str:
+class RedactionItem(BaseModel):
+    item: str  # exact surface from found in the documentation
+    code: str  # e.g., "(3)(A)(b)"
+    desc: str  # short label, e.g., "API keys"
+    aliases: List[str] = Field(default_factory=List)  # other surface forms seen
+    notes: str = ""  # optional short reason
+
+
+class RedactionInventory(BaseModel):
+    items: List[RedactionItem]
+
+
+def enumerate_confidential_items(document_text: str) -> RedactionInventory:
     """
-    Redact sensitive information from the given document text using the AI model.
+    Ask the model to enumerate unique confidential items in 'document_text',
+    and add return a strongly-typed RedactionInventory.
     """
-    client = OpenAIChatClient()
-    messages: List[ChatMessage] = [
-        ChatMessage(role="system", content=SYSTEM_PROMPT),
-        ChatMessage(role="user", content=document_text),
-    ]
-    return client.complete(messages)
+    client = OpenAI(api_key=get_openai_api_key())
+    model = get_model_name()
+
+    response = client.responses.parse(
+        model=model,
+        input=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": document_text},
+        ],
+        text_format=RedactionInventory,
+    )
+    return response.output_parsed or RedactionInventory(items=[])

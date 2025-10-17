@@ -17,4 +17,4 @@ def get_model_name() -> str:
     """
     Retrieve the model name from environment variables or use a default.
     """
-    return os.getenv("MODEL_NAME", "gpt-5")
+    return os.getenv("MODEL_NAME", "gpt-5-mini")
