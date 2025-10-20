@@ -1,34 +1,11 @@
 # app/streamlit_app.py
 import streamlit as st
 from annotated_text import annotated_text
+
+from util.formatting import colorize_redaction_tags, segments_from_matches
 from silencio.core.redact import enumerate_confidential_items
-from silencio.core.formatting import colorize_redaction_tags
 from silencio.core.replace import apply_numbered_redactions, InventoryRow
 from silencio.settings import get_model_name
-
-
-def _segments_from_matches(text: str, matches, code_bg="#FDECEA", code_fg="#7A0010"):
-    """
-    Given text and a list of matches, returns a list of segments where each segment is either
-    """
-    segments = []
-    cursor = 0
-    for match in sorted(matches, key=lambda x: x.start):
-        if cursor < match.start:
-            segments.append(text[cursor : match.start])  # untouched text
-        # label is the policy code only (per target)
-        segments.append(
-            (
-                match.surface,
-                match.code,
-                code_bg,
-                code_fg,
-            )
-        )
-        cursor = match.end
-    if cursor < len(text):
-        segments.append(text[cursor:])  # remaining text
-    return segments
 
 
 st.set_page_config(page_title="silencio — a document redactor", layout="wide")
@@ -65,7 +42,7 @@ if st.button("Run", type="primary"):
         redacted, matches = apply_numbered_redactions(user_input, rows)
 
     st.subheader("Highlighted items")
-    segments = _segments_from_matches(user_input, matches)
+    segments = segments_from_matches(user_input, matches)
     annotated_text(*segments)
 
     st.subheader("Redacted Output")
