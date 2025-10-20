@@ -87,4 +87,4 @@ if st.button("Run", type="primary"):
         }
         for row in rows
     ]
-    st.dataframe(table, use_container_width=True)
+    st.dataframe(table, width="stretch")
