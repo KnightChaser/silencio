@@ -13,6 +13,8 @@ Return a DEDUPED list with fields: item, code, desc, aliases, notes.
 - Use the most specific code: (1|2|3|4)(A–E|X)?(a–e|x)?  e.g., (1)(A)(c), (3)(B)(d), (2)(C).
 - Keep item EXACTLY as it appears in the input (surface form). Add other seen surface forms to aliases.
 - Be minimal and factual. Do not include anything not present in the input.
+- Note that first, second, and third category number must be enclosed by small brackets respectively, like "(3)(A)(b)".
+  (Not 3.A.b or [3][A][b], 3(A)(b), etc.)
 
 Legend:
 ---
