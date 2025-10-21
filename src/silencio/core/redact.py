@@ -131,8 +131,12 @@ class RedactionInventory(BaseModel):
 
 def enumerate_confidential_items(document_text: str) -> RedactionInventory:
     """
-    Ask the model to enumerate unique confidential items in 'document_text',
-    and add return a strongly-typed RedactionInventory.
+    Enumerate unique confidential items in the given document text using an AI model.
+
+    Sends the document text to the configured OpenAI model along with a detailed system prompt
+    that defines categories of sensitive information (PII, company data, technical details, etc.).
+    The model returns a structured list of unique items to redact, each with a code, description,
+    and optional aliases. Returns a RedactionInventory object containing the parsed results.
     """
     client = OpenAI(api_key=get_openai_api_key())
     model = get_model_name()

@@ -1,5 +1,7 @@
 # app/util/formatting.py
 import re
+from typing import List
+from silencio.core.replace import Match
 
 # Matches numbered tag blocks like: [REDACTED(#12): (3)(B)(c), internal domain]
 TAG = re.compile(
@@ -9,7 +11,10 @@ TAG = re.compile(
 
 def colorize_redaction_tags(md_text: str) -> str:
     """
-    Colorizes redaction tags for Streamlit markdown rendering.
+    Colorizes redaction tags in markdown text for Streamlit rendering.
+
+    Searches for redaction tag patterns in the input text and wraps them in HTML spans
+    with red color and bold font weight for visual emphasis in the UI.
     """
     return TAG.sub(
         lambda m: f"<span style='color:red; font-weight:bold'>{m.group(0)}</span>",
@@ -17,9 +22,12 @@ def colorize_redaction_tags(md_text: str) -> str:
     )
 
 
-def segments_from_matches(text: str, matches, code_bg="#FDECEA", code_fg="#7A0010"):
+def segments_from_matches(text: str, matches: List[Match], code_bg: str = "#FDECEA", code_fg: str = "#7A0010"):
     """
-    Given text and a list of matches, returns a list of segments where each segment is either
+    Given text and a list of matches, returns a list of segments for annotated text display.
+
+    Each segment is either a string (for plain text) or a tuple (for annotated matches).
+    The tuple contains (surface_text, code, background_color, foreground_color).
     """
     segments = []
     cursor = 0
